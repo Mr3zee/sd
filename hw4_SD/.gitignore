@@ -1,0 +1,6 @@
+**/build/**
+**/.gradle
+
+local.properties
+server/application/src/main/resources/static
+server/profiler/src/main/resources/static
