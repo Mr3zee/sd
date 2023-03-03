@@ -27,7 +27,7 @@ class ParseVisitor : TokenVisitor<List<Token>> {
     override fun visit(operation: Token.Operation) {
         while (
             operationStack.isNotEmpty() &&
-            operationStack.last().let { it is Token.Operation && it.precedence > operation.precedence }
+            operationStack.last().let { it is Token.Operation && it.precedence >= operation.precedence }
         ) {
             result.add(operationStack.removeLast())
         }

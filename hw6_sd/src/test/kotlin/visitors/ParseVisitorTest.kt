@@ -44,13 +44,17 @@ class ParseVisitorTest : TokenVisitorTest<List<Token>>() {
             Token.Operation.Plus,
             Token.Number(13),
             Token.Operation.Multiply,
-            Token.Number(2)
+            Token.Number(2),
+            Token.Operation.Divide,
+            Token.Number(4),
         ),
         expected = listOf(
             Token.Number(1),
             Token.Number(13),
             Token.Number(2),
             Token.Operation.Multiply,
+            Token.Number(4),
+            Token.Operation.Divide,
             Token.Operation.Plus,
         )
     )
