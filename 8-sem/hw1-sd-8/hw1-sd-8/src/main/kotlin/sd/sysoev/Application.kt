@@ -1,17 +1,20 @@
 package sd.sysoev
 
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.server.plugins.contentnegotiation.*
 import org.koin.core.KoinApplication
+import org.koin.core.qualifier.named
 import org.koin.ktor.plugin.Koin
 import sd.sysoev.api.BingApi
 import sd.sysoev.api.GoogleApi
-import sd.sysoev.api.StubSearchApi
 import sd.sysoev.api.YandexApi
 import sd.sysoev.plugins.routing
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientCN
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation as ServerCN
 
 fun main() {
     embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
@@ -19,7 +22,7 @@ fun main() {
 }
 
 fun Application.module() {
-    install(ContentNegotiation) {
+    install(ServerCN) {
         json()
     }
 
@@ -36,21 +39,15 @@ fun Application.configureKoin(config: KoinApplication.() -> Unit) {
 
 val defaultKoinConfig: KoinApplication.() -> Unit = {
     val module = org.koin.dsl.module {
-        single<GoogleApi> {
-            StubSearchApi { query ->
-                List(5) { "google-$it-$query" }
-            }
-        }
+        single { GoogleApi() }
+        single { YandexApi() }
+        single { BingApi() }
 
-        single<YandexApi> {
-            StubSearchApi { query ->
-                List(5) { "yandex-$it-$query" }
-            }
-        }
-
-        single<BingApi> {
-            StubSearchApi { query ->
-                List(5) { "bing-$it-$query" }
+        single(named("api-client")) {
+            HttpClient(CIO) {
+                install(ClientCN) {
+                    json()
+                }
             }
         }
     }

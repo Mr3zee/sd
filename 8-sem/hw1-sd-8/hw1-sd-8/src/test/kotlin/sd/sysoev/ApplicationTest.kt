@@ -1,24 +1,26 @@
 package sd.sysoev
 
+import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import kotlinx.coroutines.delay
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
+import org.koin.core.qualifier.named
 import org.koin.test.KoinTest
 import org.koin.test.junit5.KoinTestExtension
 import org.koin.test.mock.declare
 import sd.sysoev.actor.SearchResult
-import sd.sysoev.api.GoogleApi
-import sd.sysoev.api.StubSearchApi
 import sd.sysoev.plugins.routing
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlin.test.fail
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientCN
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation as ServerCN
 
@@ -31,20 +33,14 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun testNoTimeout() = testApplication {
-        application {
-            install(ServerCN) {
-                json()
-            }
-
-            routing(timeoutMillis = 3000)
+    fun testNoTimeout() = withTestConfig { client ->
+        externalServices {
+            configureExternal("https://www.google.com", "google", 0)
+            configureExternal("https://www.yandex.ru", "yandex", 0)
+            configureExternal("https://www.bing.com", "bing", 0)
         }
 
-        val client = createClient {
-            install(ClientCN) {
-                json()
-            }
-        }
+        withApiClient()
 
         client.get("/?query=hello").apply {
             assertEquals(HttpStatusCode.OK, status)
@@ -78,24 +74,14 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun testGoogleTimeout() = testApplication {
-        application {
-            install(ServerCN) {
-                json()
-            }
-
-            routing(timeoutMillis = 3000)
+    fun testGoogleTimeout() = withTestConfig { client ->
+        externalServices {
+            configureExternal("https://www.google.com", "google", 4000)
+            configureExternal("https://www.yandex.ru", "yandex", 0)
+            configureExternal("https://www.bing.com", "bing", 0)
         }
 
-        declare<GoogleApi> {
-            StubSearchApi(delayMillis = 4000) { fail("Should've failed with timeout") }
-        }
-
-        val client = createClient {
-            install(ClientCN) {
-                json()
-            }
-        }
+        withApiClient()
 
         client.get("/?query=hello").apply {
             assertEquals(HttpStatusCode.OK, status)
@@ -120,6 +106,56 @@ class ApplicationTest : KoinTest {
             )
 
             assertTrue { response.filterIsInstance<SearchResult.Failure>().isEmpty() }
+        }
+    }
+
+    private fun withTestConfig(
+        routingTimeout: Long = 3000,
+        appConfig: Application.() -> Unit = {},
+        body: suspend ApplicationTestBuilder.(HttpClient) -> Unit,
+    ) = testApplication {
+        application {
+            install(ServerCN) {
+                json()
+            }
+
+            routing(timeoutMillis = routingTimeout)
+
+            appConfig()
+        }
+
+        val client = createClient {
+            install(ClientCN) {
+                json()
+            }
+        }
+
+        body(client)
+    }
+
+    private fun ExternalServicesBuilder.configureExternal(url: String, prefix: String, delayMillis: Long) {
+        hosts(url) {
+            install(ServerCN) {
+                json()
+            }
+
+            routing {
+                get("/") {
+                    delay(delayMillis)
+                    val query = call.parameters["query"]!!
+                    call.respond(List(5) { "$prefix-$it-$query" })
+                }
+            }
+        }
+    }
+
+    private fun ApplicationTestBuilder.withApiClient() {
+        declare(named("api-client")) {
+            createClient {
+                install(ClientCN) {
+                    json()
+                }
+            }
         }
     }
 }

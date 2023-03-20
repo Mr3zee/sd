@@ -26,6 +26,7 @@ class ChildActor(scope: CoroutineScope, api: SearchApi, val name: String) : Sear
                 } catch (_: TimeoutCancellationException) {
                     SearchResult.Failure(null)
                 } catch (e: Exception) {
+                    e.printStackTrace()
                     SearchResult.Failure(e.message)
                 }
 
