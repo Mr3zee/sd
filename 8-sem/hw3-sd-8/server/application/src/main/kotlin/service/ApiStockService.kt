@@ -13,16 +13,16 @@ import io.ktor.serialization.kotlinx.json.*
 import org.koin.dsl.module
 
 val stockModule = module {
-    single<StockService> { ApiStockService() }
+    single<StockService> { ApiStockService("localhost", 8081) }
 }
 
-class ApiStockService : StockService {
+class ApiStockService(host: String, port: Int) : StockService {
     private val client by lazy {
         HttpClient(CIO) {
             defaultRequest {
                 url {
-                    host = "localhost"
-                    port = 8081
+                    this.host = host
+                    this.port = port
                 }
             }
 

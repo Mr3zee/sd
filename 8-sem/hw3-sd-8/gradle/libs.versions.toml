@@ -10,7 +10,7 @@ exposed = "0.40.1"
 postgresql = "42.5.0"
 koin = "3.2.2"
 koin_ktor = "3.2.2"
-junit5-version = "5.8.1"
+junit5-version = "5.9.2"
 testcontainers-version = "1.17.6"
 
 
@@ -67,12 +67,12 @@ koin-ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koin_ktor" }
 koin-logger-slf4j = { module = "io.insert-koin:koin-logger-slf4j", version.ref = "koin_ktor" }
 
 # junit
-junit5-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit5-version" }
-junit5-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit5-version" }
+junit5 = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit5-version" }
 
 # testcontainers
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers-version" }
 testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers-version" }
+testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers-version" }
 
 [plugins]
 kotlin-plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

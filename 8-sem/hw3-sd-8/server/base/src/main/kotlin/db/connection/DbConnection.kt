@@ -2,13 +2,14 @@ package db.connection
 
 import db.util.tx
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.koin.core.component.KoinComponent
 
 
 // marker interface
 interface TableHolder
 
-abstract class DbConnection : KoinComponent {
+abstract class DbConnection : KoinComponent, AutoCloseable {
     protected abstract val dbUrl: String
     protected abstract val dbUsername: String
     protected abstract val dbPassword: String
@@ -33,5 +34,9 @@ abstract class DbConnection : KoinComponent {
 
             SchemaUtils.create(*tables.toTypedArray(), inBatch = true)
         }
+    }
+
+    override fun close() {
+        TransactionManager.closeAndUnregister(db)
     }
 }
