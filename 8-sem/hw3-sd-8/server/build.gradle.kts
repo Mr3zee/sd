@@ -34,25 +34,3 @@ dependencies {
     implementation(libs.koin.ktor)
     implementation(libs.koin.logger.slf4j)
 }
-
-val buildAndCopyFrontend = tasks.register<Copy>("buildAndCopyFrontend") {
-    val frontendDist = project(":frontend").tasks.named("browserDistribution")
-    dependsOn(frontendDist)
-    from(frontendDist)
-    into("${project.projectDir}/src/main/resources/static")
-}
-
-val prepareAppResources = tasks.register("prepareAppResources") {
-    dependsOn(buildAndCopyFrontend)
-    finalizedBy("processResources")
-}
-
-val buildApp = tasks.register("buildApp") {
-    dependsOn(prepareAppResources)
-    finalizedBy("build")
-}
-
-tasks.named<JavaExec>("run") {
-    dependsOn(buildApp)
-    classpath(tasks.named<Jar>("jar"))
-}

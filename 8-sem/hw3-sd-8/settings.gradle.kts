@@ -1,4 +1,4 @@
-rootProject.name = "kotlin-client-server-sample"
+rootProject.name = "stocks"
 
-include("common", "frontend", "server")
+include("common", "client", "server", "server:base", "server:application", "server:stock")
 
