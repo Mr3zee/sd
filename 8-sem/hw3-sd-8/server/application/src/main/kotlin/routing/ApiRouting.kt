@@ -11,6 +11,12 @@ fun Routing.apiRouting() {
     val service by inject<UserService>()
 
     route("/api") {
+        get("/login") {
+            val exists = service.login(call.id)
+            val status = if (exists) HttpStatusCode.OK else HttpStatusCode.NotFound
+            call.respond(status)
+        }
+
         post("/register") {
             val id = service.register()
             call.respond(id)

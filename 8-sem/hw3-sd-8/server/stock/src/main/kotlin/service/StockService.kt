@@ -3,6 +3,7 @@ package service
 import DealResult
 import StockInfo
 import db.StockTables
+import db.util.tx
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
@@ -24,20 +25,24 @@ interface AdminStockService : StockService {
 
 class StockServiceImpl : AdminStockService {
     override suspend fun addCompany(companyName: String, code: String, stockValue: Double, stockQuantity: Int) {
-        StockTables.Stokes.insert {
-            it[StockTables.Stokes.companyName] = companyName
-            it[StockTables.Stokes.code] = code
-            it[StockTables.Stokes.stockValue] = stockValue
-            it[StockTables.Stokes.stockQuantity] = stockQuantity
+        tx {
+            StockTables.Stokes.insert {
+                it[StockTables.Stokes.companyName] = companyName
+                it[StockTables.Stokes.code] = code
+                it[StockTables.Stokes.stockValue] = stockValue
+                it[StockTables.Stokes.stockQuantity] = stockQuantity
+            }
         }
     }
 
     override suspend fun updateCompany(code: String, stockValue: Double?, stockQuantity: Int?) {
-        StockTables.Stokes.update(
-            where = { StockTables.Stokes.code.eq(code) }
-        ) {
-            stockValue?.let { value -> it[StockTables.Stokes.stockValue] = value }
-            stockQuantity?.let { quantity -> it[StockTables.Stokes.stockQuantity] = quantity }
+        tx {
+            StockTables.Stokes.update(
+                where = { StockTables.Stokes.code.eq(code) }
+            ) {
+                stockValue?.let { value -> it[StockTables.Stokes.stockValue] = value }
+                stockQuantity?.let { quantity -> it[StockTables.Stokes.stockQuantity] = quantity }
+            }
         }
     }
 
@@ -48,15 +53,17 @@ class StockServiceImpl : AdminStockService {
     }
 
     override suspend fun getStockInfo(code: String): StockInfo? {
-        return StockTables.Stokes.select {
-            StockTables.Stokes.code.eq(code)
-        }.map {
-            StockInfo(
-                code = it[StockTables.Stokes.code],
-                stockValue = it[StockTables.Stokes.stockValue],
-                stockQuantity = it[StockTables.Stokes.stockQuantity]
-            )
-        }.singleOrNull()
+        return tx {
+            StockTables.Stokes.select {
+                StockTables.Stokes.code.eq(code)
+            }.map {
+                StockInfo(
+                    code = it[StockTables.Stokes.code],
+                    stockValue = it[StockTables.Stokes.stockValue],
+                    stockQuantity = it[StockTables.Stokes.stockQuantity]
+                )
+            }.singleOrNull()
+        }
     }
 
     override suspend fun buyStocks(code: String, quantity: Int): DealResult {
@@ -84,12 +91,14 @@ class StockServiceImpl : AdminStockService {
     }
 
     override suspend fun getAllStocks(): List<StockInfo> {
-        return StockTables.Stokes.selectAll().map {
-            StockInfo(
-                code = it[StockTables.Stokes.code],
-                stockValue = it[StockTables.Stokes.stockValue],
-                stockQuantity = it[StockTables.Stokes.stockQuantity]
-            )
+        return tx {
+            StockTables.Stokes.selectAll().map {
+                StockInfo(
+                    code = it[StockTables.Stokes.code],
+                    stockValue = it[StockTables.Stokes.stockValue],
+                    stockQuantity = it[StockTables.Stokes.stockQuantity]
+                )
+            }
         }
     }
 }

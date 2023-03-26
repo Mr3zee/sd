@@ -7,5 +7,8 @@ plugins {
 dependencies {
     implementation(project(":common"))
     implementation(libs.ktor.client.core)
+    implementation(libs.logback.classic)
+    implementation(libs.ktor.client.cio)
     implementation(libs.kotlinx.coroutines.core.jvm)
+    implementation(libs.kotlinx.cli)
 }

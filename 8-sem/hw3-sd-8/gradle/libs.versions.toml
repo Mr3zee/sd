@@ -4,6 +4,7 @@ kotlin-wrappers-bom = "1.0.0-pre.438"
 ktor = "2.2.4"
 kotlinx-serialization-json = "1.4.1"
 kotlinx-coroutines-core = "1.6.4"
+kotlinx-cli = "0.3.5"
 logback = "1.4.4"
 exposed = "0.40.1"
 postgresql = "42.5.0"
@@ -22,6 +23,7 @@ kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref =
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines-core" }
 kotlinx-coroutines-core-jvm = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm", version.ref = "kotlinx-coroutines-core" }
+kotlinx-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli", version.ref = "kotlinx-cli" }
 
 # kotlin wrappers
 kotlin-wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version.ref = "kotlin-wrappers-bom" }
