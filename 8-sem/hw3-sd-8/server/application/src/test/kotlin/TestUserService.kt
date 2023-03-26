@@ -22,7 +22,6 @@ import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.junit5.KoinTestExtension
 import org.koin.test.mock.declare
-import org.opentest4j.AssertionFailedError
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.InternetProtocol
 import org.testcontainers.containers.PostgreSQLContainer
