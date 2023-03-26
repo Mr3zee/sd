@@ -23,7 +23,6 @@ class ApiStockService : StockService {
                 url {
                     host = "localhost"
                     port = 8081
-                    path("/api")
                 }
             }
 
@@ -34,7 +33,7 @@ class ApiStockService : StockService {
     }
 
     override suspend fun getStockInfo(code: String): StockInfo? {
-        return client.get("/info") {
+        return client.get("/api/info") {
             parameter("code", code)
         }.run {
             if (status != HttpStatusCode.OK) null else body()
@@ -42,18 +41,18 @@ class ApiStockService : StockService {
     }
 
     override suspend fun getAllStocks(): List<StockInfo> {
-        return client.get("/all").body()
+        return client.get("/api/all").body()
     }
 
     override suspend fun buyStocks(code: String, quantity: Int): DealResult {
-        return client.get("/buy") {
+        return client.put("/api/buy") {
             parameter("code", code)
             parameter("quantity", quantity)
         }.body()
     }
 
     override suspend fun sellStocks(code: String, quantity: Int): DealResult {
-        return client.get("/sell") {
+        return client.delete("/api/sell") {
             parameter("code", code)
             parameter("quantity", quantity)
         }.body()

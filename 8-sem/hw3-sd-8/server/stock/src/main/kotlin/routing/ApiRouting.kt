@@ -21,12 +21,12 @@ fun Routing.apiRouting() {
             call.respond(all)
         }
 
-        get("/sell") {
+        delete("/sell") {
             val result = service.sellStocks(call.code, call.quantity)
             call.respond(result)
         }
 
-        post("/buy") {
+        put("/buy") {
             val result = service.buyStocks(call.code, call.quantity)
             call.respond(result)
         }

@@ -46,3 +46,7 @@ class Sell(executedCommand: ExecutedCommand) : StockSubcommand("sell", "Sell sto
     val code by argument(ArgType.String, description = "Code of the stock")
     val amount by argument(ArgType.Int, description = "Amount of the selected stock to sell")
 }
+
+class Exit(executedCommand: ExecutedCommand) : StockSubcommand("exit", "Exit client", executedCommand)
+
+class Logout(executedCommand: ExecutedCommand) : StockSubcommand("logout", "Logout from current user", executedCommand)

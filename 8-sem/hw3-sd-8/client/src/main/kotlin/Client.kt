@@ -29,8 +29,8 @@ fun main() = runBlocking {
 
     while (true) {
         try {
-            print("stock exchange${(currentId?.let { " $it" } ?: "")} $ ")
-            val userInput = readln().split(" ")
+            print("stock exchange${(currentId?.let { " {$it}" } ?: "")} $ ")
+            val userInput = readln().split(" ").filter { it.isNotEmpty() }
             val parser = ArgParser("stock-exchange")
             hackParser(parser)
 
@@ -44,8 +44,10 @@ fun main() = runBlocking {
             val portfolio = PortfolioCommand(executedCommand)
             val buy = Buy(executedCommand)
             val sell = Sell(executedCommand)
+            val exit = Exit(executedCommand)
+            val logout = Logout(executedCommand)
 
-            parser.subcommands(login, register, deposit, balance, stocks, portfolio, buy, sell)
+            parser.subcommands(login, register, deposit, balance, stocks, portfolio, buy, sell, exit, logout)
 
             parser.parse(userInput.toTypedArray())
 
@@ -63,6 +65,10 @@ fun main() = runBlocking {
                         }
                     }
                 }
+                is Logout -> currentId = null
+                is Exit -> {
+                    break
+                }
                 is Register -> {
                     val id = client.post("/api/register").body<Int>()
                     currentId = id
@@ -79,12 +85,11 @@ fun main() = runBlocking {
                 is Balance -> {
                     currentId ?: error("Not authenticated")
 
-                    client.put("/api/account-info") {
+                    client.get("/api/account-info") {
                         parameter("id", currentId)
                     }.run {
                         val info = if (status == HttpStatusCode.OK) body<AccountInfo>() else {
-                            currentId = null
-                            error("Invalid account id")
+                            error("Error processing operation")
                         }
 
                         println("Balance: ${info.balance}")
@@ -92,9 +97,10 @@ fun main() = runBlocking {
                     }
                 }
                 is PortfolioCommand -> {
-                    client.put("/api/portfolio") {
+                    client.get("/api/portfolio") {
                         parameter("id", currentId)
                     }.body<Portfolio>().let {
+                        println("Portfolio:")
                         it.stocks.forEach { stock ->
                             println("${stock.code} --- ${stock.stockValue}, owned: ${stock.stockQuantity}")
                         }
@@ -102,6 +108,7 @@ fun main() = runBlocking {
                 }
                 is Stocks -> {
                     client.get("/api/stocks").body<List<StockInfo>>().let {
+                        println("Stock market:")
                         it.forEach { stock ->
                             println("${stock.code} --- ${stock.stockValue}, available: ${stock.stockQuantity}")
                         }
@@ -126,8 +133,8 @@ fun main() = runBlocking {
 
                     client.delete("/api/sell") {
                         parameter("id", currentId)
-                        parameter("code", buy.code)
-                        parameter("amount", buy.amount)
+                        parameter("code", sell.code)
+                        parameter("amount", sell.amount)
                     }.body<DealResult>().let {
                         when (it) {
                             is DealResult.Success -> println("Success")
@@ -138,7 +145,7 @@ fun main() = runBlocking {
             }
         } catch (e: ParsingException) {
             // ignore
-        } catch (e : IllegalStateException) {
+        } catch (e : Exception) {
             println(e.message)
         }
     }

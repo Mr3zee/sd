@@ -32,7 +32,8 @@ fun Routing.apiRouting() {
         }
 
         get("/account-info") {
-            call.respond(service.getAccountInfo(call.id) ?: error("unknown id"))
+            val info = service.getAccountInfo(call.id) ?: error("unknown id")
+            call.respond(info)
         }
 
         get("/stocks") {

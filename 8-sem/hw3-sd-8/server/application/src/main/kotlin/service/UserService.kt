@@ -72,7 +72,7 @@ class UserServiceImpl : UserService, KoinComponent {
 
         return tx {
             UserTables.Portfolio.select {
-                UserTables.User.id.eq(id)
+                UserTables.Portfolio.user.eq(id)
             }.map {
                 StockInfo(
                     code = it[UserTables.Portfolio.stockCode],
@@ -84,17 +84,17 @@ class UserServiceImpl : UserService, KoinComponent {
     }
 
     override suspend fun getAccountInfo(id: Int): AccountInfo? {
-        return tx {
-            val balance = UserTables.User
+        val balance = tx {
+            UserTables.User
                 .select { UserTables.User.id.eq(id) }
                 .map { it[UserTables.User.balance] }
-                .singleOrNull() ?: return@tx null
+                .singleOrNull()
+        } ?: return null
 
-            getPortfolio(id).stocks.fold(0.0) { acc, stockInfo ->
-                acc + stockInfo.stockValue * stockInfo.stockQuantity
-            }.let {
-                AccountInfo(balance, it)
-            }
+        return getPortfolio(id).stocks.fold(0.0) { acc, stockInfo ->
+            acc + stockInfo.stockValue * stockInfo.stockQuantity
+        }.let {
+            AccountInfo(balance, it)
         }
     }
 
