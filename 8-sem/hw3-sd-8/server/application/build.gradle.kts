@@ -12,4 +12,12 @@ application {
 
 dependencies {
     implementation(project(":server:base"))
+    testImplementation(libs.junit5.api)
+    testRuntimeOnly(libs.junit5.engine)
+    testImplementation(libs.testcontainers)
+    testImplementation(libs.testcontainers.junit)
+}
+
+tasks.withType<Test> {
+    dependsOn(":server:stock:prepareStock")
 }

@@ -10,7 +10,7 @@ plugins {
 }
 
 application {
-    mainClass.set("ApplicationKt")
+    mainClass.set("StockKt")
 }
 
 dependencies {
@@ -22,4 +22,8 @@ ktor {
         localImageName.set("sd-stock-service")
         imageTag.set("latest")
     }
+}
+
+tasks.register("prepareStock") {
+    dependsOn("publishImageToLocalRegistry")
 }

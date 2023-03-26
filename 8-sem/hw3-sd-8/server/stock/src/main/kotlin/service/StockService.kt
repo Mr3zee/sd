@@ -83,7 +83,7 @@ class StockServiceImpl : AdminStockService {
     override suspend fun sellStocks(code: String, quantity: Int): DealResult {
         // Hello, race conditions!
         val available = getStockInfo(code)?.stockQuantity
-            ?: return DealResult.Failure("Invalid code")
+            ?: return DealResult.Failure("Invalid stock code")
 
         updateCompany(code, stockQuantity = available + quantity)
 
