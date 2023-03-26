@@ -12,4 +12,12 @@ services:
     image: adminer
     restart: always
     ports:
+      - "8082:8080"
+  stock:
+    image: sd-stock-service:latest
+    depends_on:
+      - db
+    ports:
       - "8081:8080"
+    environment:
+      DB_POSTGRES_HOST: host.docker.internal

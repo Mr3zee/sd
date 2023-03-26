@@ -1,7 +1,10 @@
+import io.ktor.plugin.features.*
+
 @Suppress("DSL_SCOPE_VIOLATION") // "libs" produces a false-positive warning, see https://youtrack.jetbrains.com/issue/KTIJ-19369
 plugins {
     kotlin("jvm")
     alias(libs.plugins.kotlin.plugin.serialization)
+    alias(libs.plugins.ktor.plugin)
     application
     distribution
 }
@@ -12,4 +15,21 @@ application {
 
 dependencies {
     implementation(project(":server:base"))
+}
+
+ktor {
+    docker {
+        localImageName.set("sd-stock-service")
+        imageTag.set("latest")
+
+        portMappings.set(
+            listOf(
+                DockerPortMapping(
+                    outsideDocker = 8081,
+                    insideDocker = 8080,
+                    protocol = DockerPortMappingProtocol.TCP
+                )
+            )
+        )
+    }
 }
