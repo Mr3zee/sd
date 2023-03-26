@@ -4,10 +4,7 @@ import DealResult
 import StockInfo
 import db.StockTables
 import db.util.tx
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.sql.*
 import org.koin.dsl.module
 
 
@@ -21,9 +18,17 @@ interface AdminStockService : StockService {
     suspend fun updateCompany(code: String, stockValue: Double? = null, stockQuantity: Int? = null)
 
     suspend fun addStokes(code: String, stockQuantity: Int)
+
+    suspend fun clear()
 }
 
 class StockServiceImpl : AdminStockService {
+    override suspend fun clear() {
+        tx {
+            StockTables.Stokes.deleteAll()
+        }
+    }
+
     override suspend fun addCompany(companyName: String, code: String, stockValue: Double, stockQuantity: Int) {
         tx {
             StockTables.Stokes.insert {

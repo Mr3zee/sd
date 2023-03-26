@@ -127,7 +127,12 @@ class UserServiceImpl : UserService, KoinComponent {
     }
 
     override suspend fun sellStock(id: Int, code: String, amount: Int): DealResult {
-        val info = stockApi.getStockInfo(code) ?: return DealResult.Failure("unknown stock")
+        val info = getPortfolio(id).stocks.find { it.code == code }
+            ?: return DealResult.Failure("stock is not owned")
+
+        if (info.stockQuantity < amount) {
+            return DealResult.Failure("cannot sell more than own")
+        }
 
         val result = stockApi.sellStocks(code, amount)
 

@@ -45,6 +45,11 @@ fun Routing.apiRouting() {
                 service.updateCompany(call.code, stockQuantity = call.quantity)
                 call.respondOk()
             }
+
+            delete("/clear") {
+                service.clear()
+                call.respondOk()
+            }
         }
 
         route("/add") {
