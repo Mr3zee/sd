@@ -5,15 +5,25 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
-import service.StockService
+import service.AdminStockService
 
 fun Routing.apiRouting() {
-    val service by inject<StockService>()
+    val service by inject<AdminStockService>()
 
     route("/api") {
         get("/info") {
             val info = service.getStockInfo(call.code) ?: error("unknown code parameter")
             call.respond(info)
+        }
+
+        get("/all") {
+            val all = service.getAllStocks()
+            call.respond(all)
+        }
+
+        get("/sell") {
+            val result = service.sellStocks(call.code, call.quantity)
+            call.respond(result)
         }
 
         post("/buy") {
@@ -28,29 +38,35 @@ fun Routing.apiRouting() {
         route("/update") {
             put("/value") {
                 service.updateCompany(call.code, call.value)
+                call.respondOk()
             }
 
             put("/quantity") {
                 service.updateCompany(call.code, stockQuantity = call.quantity)
+                call.respondOk()
             }
         }
 
         route("/add") {
             put("/stokes") {
                 service.addStokes(call.code, call.quantity)
+                call.respondOk()
             }
 
             put("/company") {
                 service.addCompany(call.name, call.code, call.value, call.quantity)
+                call.respondOk()
             }
         }
     }
 }
 
+private suspend fun ApplicationCall.respondOk() = respond(HttpStatusCode.OK)
+
 private val ApplicationCall.name get() = parameters.saveReceive("name")
 private val ApplicationCall.code get() = parameters.saveReceive("code")
-private val ApplicationCall.value get() = parameters.saveReceive("value") { it.toDouble() }
-private val ApplicationCall.quantity get() = parameters.saveReceive("quantity") { it.toInt() }
+private val ApplicationCall.value get() = parameters.saveReceive("value") { it.toDoubleOrNull() }
+private val ApplicationCall.quantity get() = parameters.saveReceive("quantity") { it.toIntOrNull() }
 
 // top security
 private fun Route.adminAccess() {

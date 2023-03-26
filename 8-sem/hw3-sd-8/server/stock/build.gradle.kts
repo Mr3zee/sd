@@ -21,15 +21,5 @@ ktor {
     docker {
         localImageName.set("sd-stock-service")
         imageTag.set("latest")
-
-        portMappings.set(
-            listOf(
-                DockerPortMapping(
-                    outsideDocker = 8081,
-                    insideDocker = 8080,
-                    protocol = DockerPortMappingProtocol.TCP
-                )
-            )
-        )
     }
 }

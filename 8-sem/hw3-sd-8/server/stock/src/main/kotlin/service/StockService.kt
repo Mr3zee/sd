@@ -5,28 +5,25 @@ import StockInfo
 import db.StockTables
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.update
 import org.koin.dsl.module
 
 
 val serviceModule = module {
-    single<StockService> { StockServiceImpl() }
+    single<AdminStockService> { StockServiceImpl() }
 }
 
-interface StockService {
-    fun addCompany(companyName: String, code: String, stockValue: Double, stockQuantity: Int)
+interface AdminStockService : StockService {
+    suspend fun addCompany(companyName: String, code: String, stockValue: Double, stockQuantity: Int)
 
-    fun updateCompany(code: String, stockValue: Double? = null, stockQuantity: Int? = null)
+    suspend fun updateCompany(code: String, stockValue: Double? = null, stockQuantity: Int? = null)
 
-    fun addStokes(code: String, stockQuantity: Int)
-
-    fun getStockInfo(code: String): StockInfo?
-
-    fun buyStocks(code: String, quantity: Int): DealResult
+    suspend fun addStokes(code: String, stockQuantity: Int)
 }
 
-class StockServiceImpl : StockService {
-    override fun addCompany(companyName: String, code: String, stockValue: Double, stockQuantity: Int) {
+class StockServiceImpl : AdminStockService {
+    override suspend fun addCompany(companyName: String, code: String, stockValue: Double, stockQuantity: Int) {
         StockTables.Stokes.insert {
             it[StockTables.Stokes.companyName] = companyName
             it[StockTables.Stokes.code] = code
@@ -35,7 +32,7 @@ class StockServiceImpl : StockService {
         }
     }
 
-    override fun updateCompany(code: String, stockValue: Double?, stockQuantity: Int?) {
+    override suspend fun updateCompany(code: String, stockValue: Double?, stockQuantity: Int?) {
         StockTables.Stokes.update(
             where = { StockTables.Stokes.code.eq(code) }
         ) {
@@ -44,13 +41,13 @@ class StockServiceImpl : StockService {
         }
     }
 
-    override fun addStokes(code: String, stockQuantity: Int) {
+    override suspend fun addStokes(code: String, stockQuantity: Int) {
         // Hello, race conditions!
         val info = getStockInfo(code) ?: return
         updateCompany(code, stockQuantity = info.stockQuantity + stockQuantity)
     }
 
-    override fun getStockInfo(code: String): StockInfo? {
+    override suspend fun getStockInfo(code: String): StockInfo? {
         return StockTables.Stokes.select {
             StockTables.Stokes.code.eq(code)
         }.map {
@@ -62,7 +59,7 @@ class StockServiceImpl : StockService {
         }.singleOrNull()
     }
 
-    override fun buyStocks(code: String, quantity: Int): DealResult {
+    override suspend fun buyStocks(code: String, quantity: Int): DealResult {
         // Hello, race conditions!
         val available = getStockInfo(code)?.stockQuantity
             ?: return DealResult.Failure("Invalid code")
@@ -74,5 +71,25 @@ class StockServiceImpl : StockService {
         updateCompany(code, stockQuantity = available - quantity)
 
         return DealResult.Success
+    }
+
+    override suspend fun sellStocks(code: String, quantity: Int): DealResult {
+        // Hello, race conditions!
+        val available = getStockInfo(code)?.stockQuantity
+            ?: return DealResult.Failure("Invalid code")
+
+        updateCompany(code, stockQuantity = available + quantity)
+
+        return DealResult.Success
+    }
+
+    override suspend fun getAllStocks(): List<StockInfo> {
+        return StockTables.Stokes.selectAll().map {
+            StockInfo(
+                code = it[StockTables.Stokes.code],
+                stockValue = it[StockTables.Stokes.stockValue],
+                stockQuantity = it[StockTables.Stokes.stockQuantity]
+            )
+        }
     }
 }
